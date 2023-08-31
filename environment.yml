@@ -1,0 +1,11 @@
+name: model-playground
+channels:
+  - defaults
+  - conda-forge
+  - plotly
+dependencies:
+  - python=3.8.8
+  - numpy=1.20.3
+  - jupyterlab
+  - ipywidgets=7.6.3
+  - ploty=6.16.1
