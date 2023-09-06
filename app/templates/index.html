@@ -3,69 +3,49 @@
 <head>
     <title>Dynamic HTML Example</title>
 </head>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="{{ url_for('static', filename='scripts/plot.js')}}"></script>
+<script src="{{ url_for('static', filename='scripts/sliders.js')}}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/sliders.css')}}">
 <body>
     <h1>{{ model_name }}</h1>
+
+    <div id="result"></div>
 
     <div id="interactive-module-container">
 
         <div id="plot-container"></div>
 
-        <!-- <div id="slider-container">
-    
-            {% for slider in slider_data %}
-            <label for="{{ slider.name }}">{{ slider.name }}</label>
-            <input 
-                type="range" 
-                id="{{ slider.name }}" 
-                scale="{{ slider.scale }}"
-                name="{{ slider.name }}" 
-                min="{{ slider.min }}" 
-                max="{{ slider.max }}" 
-                value="{{ slider.initial_value }}" 
-                stepsize="{{ slider.stepsize }}" 
-                base="{{ slider.base}}"
-            >
-            <div id="output-{{ slider.name }}">{{ slider.initial_value }}</div>
-            <br>
-            {% endfor %}    
-    
-        </div> -->
+        <div id="slider-container-container">
+            <div id="settings-container">
+                <div id="settings-buttons"></div>
+            </div>
+            <div id="name-labels"></div>
+            <div id="sliders"></div>
+            <div id="value-labels"></div>
+        </div>
         
     </div>
-
-    <!-- <div id="dashboard-container">
-
-
-        {% for slider in slider_data %}
-
-        <div id="{{ slider.name}}-settings">
-
-            <label for="{{ slider.name }}-scale-button"></label>
-            <button id="{{ slider.name }}-scale-button"></button>
-
-            <label for="{{ slider.name }}-min-field"></label>
-            <input type="{{ slider.name }}-min-field">
-
-            <label for="{{ slider.name }}-max-field"></label>
-            <input type="{{ slider.name }}-max-field">
-
-            <label for="{{ slider.name }}-initial-value-field"></label>
-            <input type="{{ slider.name }}-initial-value-field">
-
-            <label for="{{ slider.name }}-stepsize-field"></label>
-            <input type="{{ slider.name }}-stepsize-field">
-
-        </div>
-
-
-        {% endfor %}
-
-
-    </div> -->
-
     <script>
-
+        
+        // fetch('/send_data')
+        //     .then(response => {
+        //         if (!response.ok) {
+        //             throw new Error('Network response was not ok');
+        //         }
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         // Handle the received data here
+        //         console.log("Received Array:", data.data);
+        //         document.getElementById('result').innerText = "Received Array: " + data.data.join(', ');
+        //     })
+        //     .catch(error => {
+        //         console.error('There was a problem with the fetch operation:', error);
+        //     });
+        
     </script>
+</body>
 
 
 </body>
