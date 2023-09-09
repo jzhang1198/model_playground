@@ -1,8 +1,9 @@
-name: model-playground
+name: model_playground
 channels:
   - defaults
   - conda-forge
 dependencies:
-  - pip
+  - pip=23.2.1
   - python=3.8.8
-  - numpy=1.20.3
+  - pip:
+    - Flask==2.3.3
