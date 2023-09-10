@@ -10,9 +10,10 @@ class IndependentVariableCollection:
         """
 
         IndependentVariableCollection._parse_inputs(names, value_arrays, units)
-        self.names = names
-        self.value_arrays = value_arrays
-        self.units = units if len(units) > 0 else [None] * len(names)
+        self.names = IndependentVariableCollection._to_list(names)
+        self.value_arrays = IndependentVariableCollection._to_list(value_arrays)
+        units = units if len(units) > 0 else [None] * len(names)
+        self.units = IndependentVariableCollection._to_list(units)
     
     @staticmethod
     def _parse_inputs(names, value_arrays, units):
@@ -33,6 +34,19 @@ class IndependentVariableCollection:
             assert type(value_array) == list or type(value_array) == np.ndarray, "IndependentVariableCollection Error: Elements within value_arrays must be lists or np.ndarrays."
             assert set([isinstance(value, Number) for value in value_array]) == set([True]), "IndependentVariableCollection Error: Numeric data is required for value_arrays."
 
+    @staticmethod
+    def _to_list(array: Union[list, np.ndarray]):
+        """ 
+        Function for converting array inputs to lists.
+        """
+
+        if type(array) == np.ndarray:
+            array = array.tolist()
+        elif type(array) == list:
+            array = [i.tolist() if type(i) == np.ndarray else i for i in array]
+
+        return array
+
     def get_names(self):
         return self.names
     
@@ -42,7 +56,7 @@ class IndependentVariableCollection:
     def get_units(self):
         return self.units
 
-class ParameterColllection:
+class ParameterCollection:
     def __init__(
             self, 
             names: 
@@ -55,12 +69,13 @@ class ParameterColllection:
         A utility class for organizing data associated with model parameters.
         """
 
-        ParameterColllection._parse_inputs(names, initial_values, lower_bounds, upper_bounds, units)
-        self.names = names
-        self.initial_values = initial_values
-        self.lower_bounds = lower_bounds if len(lower_bounds) > 0 else [None] * len(names)
-        self.upper_bounds = upper_bounds if len(upper_bounds) > 0 else [None] * len(names)
-        self.units = units if len(units) > 0 else [None] * len(names)
+        ParameterCollection._parse_inputs(names, initial_values, lower_bounds, upper_bounds, units)
+        self.names = ParameterCollection._to_list(names)
+        self.initial_values = ParameterCollection._to_list(initial_values)
+        self.lower_bounds = ParameterCollection._to_list(lower_bounds)
+        self.upper_bounds = ParameterCollection._to_list(upper_bounds)
+        units = units if len(units) > 0 else [None] * len(names)
+        self.units = ParameterCollection._to_list(units)
 
     @staticmethod
     def _parse_inputs(names, initial_values, lower_bounds, upper_bounds, units):
@@ -73,12 +88,22 @@ class ParameterColllection:
         # ensure consistent length and datatype of input arrays
         input_length_set = set([len(input) for input in inputs])
         input_length_set.discard(0)
-        assert len(input_length_set) == 1, 'ParameterColllection Error: The length of input lists must be identical.'
-        assert set([type(input) for input in inputs]).issubset(set([np.ndarray, list])), 'ParameterColllection Error: Inputs must be lists or np.ndarrays.'
+        assert len(input_length_set) == 1, 'ParameterCollection Error: The length of input lists must be identical.'
+        assert set([type(input) for input in inputs]).issubset(set([np.ndarray, list])), 'ParameterCollection Error: Inputs must be lists or np.ndarrays.'
 
-        assert set([isinstance(value, Number) for value in initial_values]) == set([True]), "ParameterColllection Error: Numeric data is required for initial_values."
-        assert set([isinstance(value, Number) for value in lower_bounds]) == set([True]), "ParameterColllection Error: Numeric data is required for lower_bounds."
-        assert set([isinstance(value, Number) for value in upper_bounds]) == set([True]), "ParameterColllection Error: Numeric data is required for upper_bounds."
+        assert set([isinstance(value, Number) for value in initial_values]) == set([True]), "ParameterCollection Error: Numeric data is required for initial_values."
+        assert set([isinstance(value, Number) for value in lower_bounds]) == set([True]), "ParameterCollection Error: Numeric data is required for lower_bounds."
+        assert set([isinstance(value, Number) for value in upper_bounds]) == set([True]), "ParameterCollection Error: Numeric data is required for upper_bounds."
+
+    @staticmethod
+    def _to_list(array: Union[list, np.ndarray]):
+        """ 
+        Function for converting array inputs to lists.
+        """
+
+        if type(array) == np.ndarray:
+            array = array.tolist()
+        return array
 
     def get_names(self):
         return self.names
@@ -101,7 +126,7 @@ class Model:
             model: Callable,
             model_name: str,
             independent_variable_collection: IndependentVariableCollection,
-            parameter_collection: ParameterColllection,
+            parameter_collection: ParameterCollection,
             model_units:str = None
             ):
         
@@ -130,7 +155,7 @@ class Model:
         assert set(arguments) == set(independent_variable_collection.get_names()).union(set(parameter_collection.get_names())), 'Model Error: '
 
         assert type(independent_variable_collection) == IndependentVariableCollection, 'Model Error: independent_variable_collection must be an instance of the IndependentVariableCollection class.'
-        assert type(parameter_collection) == ParameterColllection, 'Model Error: parameter_collection must be an instance of the ParameterColllection class.'
+        assert type(parameter_collection) == ParameterCollection, 'Model Error: parameter_collection must be an instance of the ParameterCollection class.'
 
     def _generate_slider_data(self):
 
