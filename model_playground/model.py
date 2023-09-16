@@ -3,6 +3,24 @@ import numpy as np
 from numbers import Number
 from typing import Callable, Union
 
+def to_list(array: Union[list, np.ndarray]):
+    """ 
+    Utility function that converts an array input to a list. Ensures that 
+    the input and elements within it are converted to lists.
+    """
+    if type(array) == np.ndarray:
+        array = array.tolist()
+    elif type(array) == list:
+        array = [i.tolist() if type(i) == np.ndarray else i for i in array]
+    return array
+
+def to_numpy(l: list):
+    """ 
+    Method for converting list inputs into numpy arrays. Ensures that the
+    list and elements within it are np.ndarrays.
+    """ 
+    return np.array(l)
+
 class IndependentVariableCollection:
     def __init__(self, names: Union[list, np.ndarray], value_arrays: Union[list, np.ndarray], units: Union[list, np.ndarray]=[]):
         """
@@ -10,10 +28,10 @@ class IndependentVariableCollection:
         """
 
         IndependentVariableCollection._parse_inputs(names, value_arrays, units)
-        self.names = IndependentVariableCollection._to_list(names)
-        self.value_arrays = IndependentVariableCollection._to_list(value_arrays)
+        self.names = to_list(names)
+        self.value_arrays = to_numpy(value_arrays)
         units = units if len(units) > 0 else [None] * len(names)
-        self.units = IndependentVariableCollection._to_list(units)
+        self.units = to_list(units)
     
     @staticmethod
     def _parse_inputs(names, value_arrays, units):
@@ -24,6 +42,7 @@ class IndependentVariableCollection:
         inputs = (names, value_arrays, units)
 
         # ensure consistent length and datatype of input arrays
+        assert set([isinstance(input, (list, np.ndarray)) for input in inputs]) == set([True]), 'IndependentVariableCollection Error: Inputs must be lists or np.ndarrays.'
         input_length_set = set([len(input) for input in inputs])
         input_length_set.discard(0)
         assert len(input_length_set) == 1, 'IndependentVariableCollection Error: The length of input lists must be identical.'
@@ -34,24 +53,12 @@ class IndependentVariableCollection:
             assert type(value_array) == list or type(value_array) == np.ndarray, "IndependentVariableCollection Error: Elements within value_arrays must be lists or np.ndarrays."
             assert set([isinstance(value, Number) for value in value_array]) == set([True]), "IndependentVariableCollection Error: Numeric data is required for value_arrays."
 
-    @staticmethod
-    def _to_list(array: Union[list, np.ndarray]):
-        """ 
-        Function for converting array inputs to lists.
-        """
-
-        if type(array) == np.ndarray:
-            array = array.tolist()
-        elif type(array) == list:
-            array = [i.tolist() if type(i) == np.ndarray else i for i in array]
-
-        return array
-
     def get_names(self):
         return self.names
     
-    def get_value_arrays(self):
-        return self.value_arrays
+    def get_value_arrays(self, aslist=True):
+        value_arrays = to_list(self.value_arrays) if aslist else self.value_arrays
+        return value_arrays
     
     def get_units(self):
         return self.units
@@ -59,8 +66,7 @@ class IndependentVariableCollection:
 class ParameterCollection:
     def __init__(
             self, 
-            names: 
-            Union[list, np.ndarray], 
+            names: Union[list, np.ndarray], 
             initial_values: Union[list, np.ndarray], 
             lower_bounds: Union[list, np.ndarray], 
             upper_bounds: Union[list, np.ndarray], 
@@ -70,12 +76,12 @@ class ParameterCollection:
         """
 
         ParameterCollection._parse_inputs(names, initial_values, lower_bounds, upper_bounds, units)
-        self.names = ParameterCollection._to_list(names)
-        self.initial_values = ParameterCollection._to_list(initial_values)
-        self.lower_bounds = ParameterCollection._to_list(lower_bounds)
-        self.upper_bounds = ParameterCollection._to_list(upper_bounds)
+        self.names = to_list(names)
+        self.initial_values = to_list(initial_values)
+        self.lower_bounds = to_list(lower_bounds)
+        self.upper_bounds = to_list(upper_bounds)
         units = units if len(units) > 0 else [None] * len(names)
-        self.units = ParameterCollection._to_list(units)
+        self.units = to_list(units)
 
     @staticmethod
     def _parse_inputs(names, initial_values, lower_bounds, upper_bounds, units):
@@ -86,24 +92,14 @@ class ParameterCollection:
         inputs = (names, initial_values, lower_bounds, upper_bounds, units)
 
         # ensure consistent length and datatype of input arrays
+        assert set([isinstance(input, (list, np.ndarray)) for input in inputs]) == set([True]), 'ParameterCollection Error: Inputs must be lists or np.ndarrays.'
         input_length_set = set([len(input) for input in inputs])
         input_length_set.discard(0)
         assert len(input_length_set) == 1, 'ParameterCollection Error: The length of input lists must be identical.'
-        assert set([type(input) for input in inputs]).issubset(set([np.ndarray, list])), 'ParameterCollection Error: Inputs must be lists or np.ndarrays.'
 
         assert set([isinstance(value, Number) for value in initial_values]) == set([True]), "ParameterCollection Error: Numeric data is required for initial_values."
         assert set([isinstance(value, Number) for value in lower_bounds]) == set([True]), "ParameterCollection Error: Numeric data is required for lower_bounds."
         assert set([isinstance(value, Number) for value in upper_bounds]) == set([True]), "ParameterCollection Error: Numeric data is required for upper_bounds."
-
-    @staticmethod
-    def _to_list(array: Union[list, np.ndarray]):
-        """ 
-        Function for converting array inputs to lists.
-        """
-
-        if type(array) == np.ndarray:
-            array = array.tolist()
-        return array
 
     def get_names(self):
         return self.names
@@ -124,29 +120,39 @@ class Model:
     def __init__(
             self, 
             model: Callable,
-            model_name: str,
+            name: str,
             independent_variable_collection: IndependentVariableCollection,
             parameter_collection: ParameterCollection,
-            model_units:str = None
+            prediction_names: Union[list, np.ndarray] = [],
+            prediction_units:Union[list, np.ndarray] = [],
             ):
         
-        Model._parse_inputs(model, independent_variable_collection, parameter_collection)
+        Model._parse_inputs(model, name, independent_variable_collection, parameter_collection, prediction_units, prediction_names)
         
         self.model = model
-        self.model_name = model_name
-        self.model_units = model_units
+        self.name = name
         self.independent_variable_collection = independent_variable_collection
         self.parameter_collection = parameter_collection
+        self.prediction_names = prediction_names
+        self.prediction_units = prediction_units
         self.slider_data = self._generate_slider_data()
 
         # private dictionaries to map parameter names to values or value arrays
-        self._independent_variable_dictionary = dict([(argname, value_range) for argname, value_range in zip(self.independent_variable_collection.get_names(), self.independent_variable_collection.get_value_arrays())])
+        self._independent_variable_dictionary = dict([(argname, value_range) for argname, value_range in zip(self.independent_variable_collection.get_names(), self.independent_variable_collection.get_value_arrays(aslist=False))])
         self._parameter_dictionary = dict([(argname, argvalue) for argname, argvalue in zip(self.parameter_collection.get_names(), self.parameter_collection.get_initial_values())])
         self._argument_dictionary = dict(
             **self._independent_variable_dictionary, 
             **self._parameter_dictionary)
         
-    def _parse_inputs(model, independent_variable_collection, parameter_collection):
+    def _parse_inputs(model, name, independent_variable_collection, parameter_collection, prediction_units, prediction_names):
+
+        # check to make sure input types are correct
+        assert callable(model), 'Model Error: model must be a Callable.'
+        assert type(name) == str, 'Model Error: model_name must be a string,'
+        assert type(independent_variable_collection) == IndependentVariableCollection, 'Model Error: inpdenendent_variable_collection must be an IndependentVariableCollection object.'
+        assert type(parameter_collection) == ParameterCollection, 'Model Error: parameter_collection must be a ParameterCollection object.'
+        assert type(prediction_units) == list or type(prediction_units) == np.ndarray, 'Model Error: prediction_units must be either a list or np.ndarray.'
+        assert type(prediction_names) == list or type(prediction_names) == np.ndarray, 'Model Error: prediction_names must be either a list or np.ndarray.'
 
         # parse function signature of the model to ensure consistency with collections
         signature = inspect.signature(model)
@@ -156,6 +162,9 @@ class Model:
 
         assert type(independent_variable_collection) == IndependentVariableCollection, 'Model Error: independent_variable_collection must be an instance of the IndependentVariableCollection class.'
         assert type(parameter_collection) == ParameterCollection, 'Model Error: parameter_collection must be an instance of the ParameterCollection class.'
+
+        if len(prediction_units) > 0 and len(prediction_names) > 0:
+            assert len(prediction_names) == len(prediction_units), 'Model Error: lengths of prediction_units and prediction_names must be consistent.'
 
     def _generate_slider_data(self):
 
@@ -186,10 +195,13 @@ class Model:
         
     def evaluate(self):
         """ 
-        Evaluates the model with set independent variables and parameters.
+        Evaluates the model with set independent variables and parameters. Outputs are lists to ensure that they are JSON serializable.
         """
-        return self.model(**self._argument_dictionary)
-    
+
+        output = to_list(self.model(**self._argument_dictionary))
+        output = output if type(output[0]) == list else [output] # add dummy dimension to output if 1D
+        return output
+
     def update_parameter(self, param_name: str, new_value: float):
         self._parameter_dictionary[param_name] = new_value
         self._argument_dictionary = dict(**self._independent_variable_dictionary, **self._parameter_dictionary)
