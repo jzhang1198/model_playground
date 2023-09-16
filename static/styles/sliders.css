@@ -5,8 +5,9 @@
 }
 
 #plot-container {
-    min-height: 40vh;
     width: auto;
+    min-width: 70vw;
+    min-height: 50vh;
 }
 
 .settings-menu {
