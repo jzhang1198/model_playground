@@ -4,9 +4,9 @@
     <title>Dynamic HTML Example</title>
 </head>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script src="{{ url_for('static', filename='scripts/plot.js')}}"></script>
-<script src="{{ url_for('static', filename='scripts/sliders.js')}}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/sliders.css')}}">
+<script src="{{ url_for('static', filename='scripts/plot.js')}}" cache-control="no-cache"></script>
+<script src="{{ url_for('static', filename='scripts/sliders.js')}}" cache-control="no-cache"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/sliders.css')}}" cache-control="no-cache">
 <body>
     <h1>{{ model_name }}</h1>
 
@@ -27,23 +27,15 @@
         
     </div>
     <script>
-        
-        // fetch('/send_data')
-        //     .then(response => {
-        //         if (!response.ok) {
-        //             throw new Error('Network response was not ok');
-        //         }
-        //         return response.json();
-        //     })
-        //     .then(data => {
-        //         // Handle the received data here
-        //         console.log("Received Array:", data.data);
-        //         document.getElementById('result').innerText = "Received Array: " + data.data.join(', ');
-        //     })
-        //     .catch(error => {
-        //         console.error('There was a problem with the fetch operation:', error);
-        //     });
-        
+
+        document.addEventListener("DOMContentLoaded", function() {
+            initPlot();
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            initSliders();
+        });
+
     </script>
 </body>
 
