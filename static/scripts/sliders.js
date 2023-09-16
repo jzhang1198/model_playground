@@ -1,3 +1,33 @@
+function formatNumber(number, noDecimals) {
+    /**
+     * Utility function for formatting large and small numbers.
+     *
+     * @param {number} number
+     * @returns Numeric string in scientific notation.
+     */
+
+    const rawScientificNotation = number.toExponential();
+    var [coefficient, exponent] = rawScientificNotation.split("e");
+    coefficient = parseFloat(coefficient).toFixed(noDecimals)
+
+    return `${coefficient}e${exponent}`;
+}
+
+async function fetchSliderData() {
+    try {
+        const response = await fetch('/serve_slider_data');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const sliderData = await response.json();
+        console.log(sliderData); // Use the data here
+        return sliderData;
+    } catch (error) {
+        console.error('Error fetching slider data:', error);
+        return null;
+    }
+}
+
 function createSlider(sliderData) {
 
     /**
@@ -13,7 +43,7 @@ function createSlider(sliderData) {
     const nameLabel = document.createElement('div');
     nameLabel.innerHTML = `<span id="${name}-label">${name}</span>`;
     const valueLabel = document.createElement('div');
-    valueLabel.innerHTML = `<span id="${name}-value-label">${initial_value}</span>`;
+    valueLabel.innerHTML = `<span id="${name}-value-label">${formatNumber(initial_value, 2)}</span>`;
 
     // Create the slider
     const slider = document.createElement('input');
@@ -41,32 +71,29 @@ function createSlider(sliderData) {
         // Transform value, if applicable
         let value;
         if (slider.classList.contains('log')) {
-            value = Math.pow(10, slider.value);
-            valueLabel.innerHTML = value;
+            value = Math.pow(10, parseFloat(slider.value));
         } else {
-            // Update label
-            value = slider.value;
-            valueLabel.innerHTML = value;
+            value = parseFloat(slider.value);
         }
+        valueLabel.innerHTML = formatNumber(value, 2);
 
         const paramName = slider.id.split('-')[0];
         const paramValue = value;
         
-
         const requestOptions = {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ paramName: paramName, paramValue: paramValue })
         }
 
-        const data = fetch('/send_data', requestOptions)
+        await fetch('/update_plot_data', requestOptions)
         .then(response => { return response.json() })
-        .then(data => { return data.data });
+        .then(data => { 
+            Plotly.react('plot-container', data['traces'], data['layout'])
+        });
     
-        // Plotly.update('plot-container', { y: [data]});
-
     });
 
     return {slider: slider, nameLabel: nameLabel, valueLabel: valueLabel}
@@ -128,11 +155,12 @@ function createSettingsMenu(sliderData, slider, valueLabel) {
         }
     });
     
-
     submitButtonElement.addEventListener('click', () => {
         const min = parseFloat(minFieldElement.value);
         const max = parseFloat(maxFieldElement.value);
         const updatedValue = parseFloat(initialValueFieldElement.value);
+
+        console.log(min, max, updatedValue);
 
         if (min > max || updatedValue < min || updatedValue > max) {
             // Display error
@@ -160,6 +188,14 @@ function createSettingsMenu(sliderData, slider, valueLabel) {
             : updatedValue.toString();
         valueLabel.innerHTML = updatedValue;
 
+        if (min < 0 && slider.classList.contains('log')) {
+            slider.min = -1 * Math.log10(Math.abs(min)).toString();
+        }
+
+        if (max < 0 && slider.classList.contains('log')) {
+            slider.max = -1 * Math.log10(Math.abs(max)).toString();
+        }
+
         settingsMenu.style.display = 'none';
 
     });
@@ -168,16 +204,13 @@ function createSettingsMenu(sliderData, slider, valueLabel) {
 
 }
 
-async function init() {
+async function initSliders() {
 
     /* 
     NOTE: in the context of the entire program, the plots are initialized first.
     */
 
-    const sliderDatas = await fetch('/send_slider_data')
-        .then(response => { return response.json() });
-
-    console.log(sliderDatas);
+    const sliderDatas = await fetchSliderData();
 
     // Collect all necessary containers
     const nameLabelsContainer = document.getElementById('name-labels');
@@ -224,7 +257,3 @@ async function init() {
     })
 
 }
-
-document.addEventListener("DOMContentLoaded", function() {
-    init();
-});
