@@ -1,6 +1,5 @@
-from flask import Blueprint, render_template, request, jsonify, current_app
+from flask import Flask, Blueprint, render_template, request, jsonify, current_app
 from .model import Model
-from typing import Union
 import sys
 
 template = Blueprint('template', __name__)
@@ -97,3 +96,12 @@ def update_plot_data():
         current_app.config['plot_data']['traces'][index]['y'] = trace
 
     return jsonify(current_app.config['plot_data'])
+
+def launch_interactive(model: Model):
+
+    app = Flask(__name__, static_url_path='/static', template_folder='./templates')
+    app.config['model_file'], app.config['model'], app.config['plot_data'] = None, model, {}
+
+    # register route handling functions
+    app.register_blueprint(template)
+    app.run()
