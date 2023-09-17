@@ -20,7 +20,6 @@ async function fetchSliderData() {
             throw new Error('Network response was not ok');
         }
         const sliderData = await response.json();
-        console.log(sliderData); // Use the data here
         return sliderData;
     } catch (error) {
         console.error('Error fetching slider data:', error);
@@ -66,35 +65,56 @@ function createSlider(sliderData) {
 
     setSliderAttributes();
 
-    slider.addEventListener('input', async function() {
+    const plotDiv = document.getElementById('plot-container');
+    const handleInputEvent = _.debounce(async function() {
 
-        // Transform value, if applicable
-        let value;
-        if (slider.classList.contains('log')) {
-            value = Math.pow(10, parseFloat(slider.value));
-        } else {
-            value = parseFloat(slider.value);
-        }
-        valueLabel.innerHTML = formatNumber(value, 2);
+            // Get current plot data
+            const currentPlotData = plotDiv.data;
+            const visbility = currentPlotData.map(item => {
+                let visibility = item.visible
+                return visibility;
+            })
 
-        const paramName = slider.id.split('-')[0];
-        const paramValue = value;
-        
-        const requestOptions = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ paramName: paramName, paramValue: paramValue })
-        }
-
-        await fetch('/update_plot_data', requestOptions)
-        .then(response => { return response.json() })
-        .then(data => { 
-            Plotly.react('plot-container', data['traces'], data['layout'])
-        });
+            // Transform value, if applicable
+            let value;
+            if (slider.classList.contains('log')) {
+                value = Math.pow(10, parseFloat(slider.value));
+            } else {
+                value = parseFloat(slider.value);
+            }
+            valueLabel.innerHTML = formatNumber(value, 2);
     
-    });
+            const paramName = slider.id.split('-')[0];
+            const paramValue = value;
+            
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ paramName: paramName, paramValue: paramValue })
+            }
+            
+            await fetch('/update_plot_data', requestOptions)
+            .then(response => { return response.json() })
+            .then(data => { 
+                const traces = data['traces'];
+                const updatedTraces = []
+                for (let i = 0; i < traces.length; i++) {
+                    const item = traces[i];
+                    const isVisible = visbility[i];
+
+                    if (typeof isVisible == 'string') {
+                        item.visible = isVisible
+                    }
+                    updatedTraces.push(item);
+                }
+
+                Plotly.react('plot-container', updatedTraces, data['layout'])
+            });
+    }, 300)
+
+    slider.addEventListener('input', handleInputEvent);
 
     return {slider: slider, nameLabel: nameLabel, valueLabel: valueLabel}
 };
@@ -160,8 +180,6 @@ function createSettingsMenu(sliderData, slider, valueLabel) {
         const max = parseFloat(maxFieldElement.value);
         const updatedValue = parseFloat(initialValueFieldElement.value);
 
-        console.log(min, max, updatedValue);
-
         if (min > max || updatedValue < min || updatedValue > max) {
             // Display error
             console.log('Invalid values');
@@ -186,7 +204,7 @@ function createSettingsMenu(sliderData, slider, valueLabel) {
         slider.value = slider.classList.contains('log')
             ? Math.log10(updatedValue).toString()
             : updatedValue.toString();
-        valueLabel.innerHTML = updatedValue;
+        valueLabel.innerHTML = formatNumber(updatedValue);
 
         if (min < 0 && slider.classList.contains('log')) {
             slider.min = -1 * Math.log10(Math.abs(min)).toString();
