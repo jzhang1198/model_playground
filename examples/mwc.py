@@ -1,4 +1,4 @@
-from model_playground import Model, IndependentVariableCollection, ParameterCollection
+from model_playground.model import Model, IndependentVariableCollection, ParameterCollection
 import numpy as np
 
 def mwc(F, Kr, Kt, L):
