@@ -5,7 +5,6 @@ async function fetchPlotData() {
             throw new Error('Network response was not ok');
         }
         const plotData = await response.json();
-        console.log(plotData); // Use the data here
         return plotData;
     } catch (error) {
         console.error('Error fetching slider data:', error);
