@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Playground</title>
+</head>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+<script src="{{ url_for('static', filename='scripts/plot.js')}}" cache-control="no-cache"></script>
+<script src="{{ url_for('static', filename='scripts/sliders.js')}}" cache-control="no-cache"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/sliders.css')}}" cache-control="no-cache">
+<body>
+    <h1>{{ model_name }}</h1>
+
+    <div id="result"></div>
+
+    <div id="interactive-module-container">
+
+        <div id="plot-container"></div>
+
+        <div id="slider-container-container">
+            <div id="settings-container">
+                <div id="settings-buttons"></div>
+            </div>
+            <div id="name-labels"></div>
+            <div id="sliders"></div>
+            <div id="value-labels"></div>
+        </div>
+        
+    </div>
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function() {
+            initPlot();
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            initSliders();
+        });
+
+    </script>
+</body>
+</html>
