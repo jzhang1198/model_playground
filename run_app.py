@@ -9,6 +9,14 @@ from model_playground.routes import exec_serve_static_content, exec_serve_plot_d
 app = Flask(__name__, static_url_path='/static', template_folder='./templates')
 MODEL_FILE, MODEL, PLOT_DATA = None, None, {}
 
+# Set caching headers for all responses
+@app.after_request
+def add_cache_headers(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 # route for serving static content
 @app.route('/')
 def serve_static_content():
