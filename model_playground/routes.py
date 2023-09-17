@@ -52,7 +52,7 @@ def exec_serve_plot_data(model: Model, plot_data: dict):
     for index, trace in enumerate(model.evaluate()):
 
         trace_data = {'type': 'scatter', 'mode': 'lines','x': x, 'y': trace}
-        name = model.prediction_names[index] if len(model.prediction_names) < index else None
+        name = None if len(model.prediction_names) <= index else model.prediction_names[index]
 
         if name:
             trace_data['name'] = name
