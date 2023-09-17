@@ -4,6 +4,7 @@
     <title>Model Playground</title>
 </head>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 <script src="{{ url_for('static', filename='scripts/plot.js')}}" cache-control="no-cache"></script>
 <script src="{{ url_for('static', filename='scripts/sliders.js')}}" cache-control="no-cache"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/sliders.css')}}" cache-control="no-cache">
@@ -37,8 +38,5 @@
         });
 
     </script>
-</body>
-
-
 </body>
 </html>
